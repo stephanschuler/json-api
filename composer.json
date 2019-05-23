@@ -1,0 +1,21 @@
+{
+    "name": "stephanschuler/json-api",
+    "description": "",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stephan Schuler",
+            "email": "stephan.schuler@netlogix.de"
+        }
+    ],
+    "require": {
+        "php": "~7.1",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "StephanSchuler\\JsonApi\\": "src"
+        }
+    }
+}
