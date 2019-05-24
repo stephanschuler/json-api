@@ -1,10 +1,10 @@
 <?php
 
-namespace StephanSchuler\JsonApi;
+namespace StephanSchuler\JsonApi\Queue;
 
 use StephanSchuler\JsonApi\Schema\Identity;
 
-final class StackItem
+final class QueueItem
 {
     private $propertyPath;
 

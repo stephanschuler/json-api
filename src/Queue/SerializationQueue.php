@@ -1,12 +1,13 @@
 <?php
 
-namespace StephanSchuler\JsonApi;
+namespace StephanSchuler\JsonApi\Queue;
 
 use JsonSerializable;
+use StephanSchuler\JsonApi\Json;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Identity;
 
-final class DocumentIterator implements JsonSerializable
+final class SerializationQueue implements JsonSerializable
 {
     private static $instance;
 
@@ -54,7 +55,7 @@ final class DocumentIterator implements JsonSerializable
     {
         $identityString = (string)$identity->toString();
         if (!array_key_exists($identityString, $this->stack)) {
-            $this->stack[$identityString] = new StackItem(
+            $this->stack[$identityString] = new QueueItem(
                 $this->getPropertyPath(),
                 $identity,
                 $subject

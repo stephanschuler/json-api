@@ -2,11 +2,11 @@
 
 namespace StephanSchuler\JsonApi\Schema;
 
-use StephanSchuler\JsonApi\DocumentIterator;
 use StephanSchuler\JsonApi\Json;
 use StephanSchuler\JsonApi\JsonSerializableTraversable;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Resource\Serializer;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
 
 class Resource implements JsonSerializableTraversable
 {
@@ -37,7 +37,7 @@ class Resource implements JsonSerializableTraversable
 
     public function getIterator()
     {
-        $propertyPath = DocumentIterator::get()->getPropertyPath();
+        $propertyPath = SerializationQueue::get()->getPropertyPath();
         yield 'propertyPath' => $propertyPath;
 
         yield from $this->getIdentity();
@@ -47,9 +47,7 @@ class Resource implements JsonSerializableTraversable
                     return $accessor($this->subject);
                 },
                 iterator_to_array(
-                    $this->getAttributeAccessors(
-
-                    )
+                    $this->getAttributeAccessors()
                 ));
         }
 
@@ -139,11 +137,11 @@ class Resource implements JsonSerializableTraversable
     protected function getIdentityForSubjectOnStack($subject): Identity
     {
         $identity = $this->resolver->getIdentifierForSubject($subject)->identify($subject);
-        return DocumentIterator::get()->includeInStack($identity, $subject);
+        return SerializationQueue::get()->includeInStack($identity, $subject);
     }
 
     protected function yieldTraversedPropertyPath(string $propertyName, callable $callable)
     {
-        yield $propertyName => DocumentIterator::get()->traversePropertyPath($propertyName, $callable);
+        yield $propertyName => SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
     }
 }

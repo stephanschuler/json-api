@@ -9,10 +9,10 @@ use StephanSchuler\JsonApi\Demo\Domain\Recipe;
 use StephanSchuler\JsonApi\Demo\Domain\Step\Step;
 use StephanSchuler\JsonApi\Demo\Service\ResourceIdentifier;
 use StephanSchuler\JsonApi\Demo\Service\ResourceSerializer;
-use StephanSchuler\JsonApi\DocumentIterator;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Documents\SingleDocument;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
 
 $autoload = require __DIR__ . '/../vendor/autoload.php';
 assert($autoload instanceof ClassLoader);
@@ -47,7 +47,7 @@ echo '<pre>';
 
 print_r(
     json_encode(
-        new DocumentIterator($document),
+        new SerializationQueue($document),
         JSON_PRETTY_PRINT
     )
 );

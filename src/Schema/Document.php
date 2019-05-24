@@ -2,12 +2,12 @@
 
 namespace StephanSchuler\JsonApi\Schema;
 
-use StephanSchuler\JsonApi\DocumentIterator;
 use StephanSchuler\JsonApi\Json;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Schema\Documents\CollectionDocument;
 use StephanSchuler\JsonApi\Schema\Documents\SingleDocument;
-use StephanSchuler\JsonApi\StackItem;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
+use StephanSchuler\JsonApi\Queue\QueueItem;
 
 abstract class Document
 {
@@ -35,9 +35,9 @@ abstract class Document
         );
 
         $included = [];
-        foreach (DocumentIterator::get()->getStack() as $item) {
-            assert($item instanceof StackItem);
-            $included[] = DocumentIterator::get()->traversePropertyPath($item->getPropertyPath(),
+        foreach (SerializationQueue::get()->getStack() as $item) {
+            assert($item instanceof QueueItem);
+            $included[] = SerializationQueue::get()->traversePropertyPath($item->getPropertyPath(),
                 function () use ($item) {
                     return Json::rewrap(
                         new Resource($item->getSubject(), $this->resolver)
