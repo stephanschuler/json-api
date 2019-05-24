@@ -4,9 +4,9 @@ namespace StephanSchuler\JsonApi\Schema;
 
 use StephanSchuler\JsonApi\Json;
 use StephanSchuler\JsonApi\JsonSerializableTraversable;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Resource\Serializer;
-use StephanSchuler\JsonApi\Queue\SerializationQueue;
 
 class Resource implements JsonSerializableTraversable
 {
@@ -52,25 +52,37 @@ class Resource implements JsonSerializableTraversable
         }
 
         if ($this->hasRelations()) {
-            yield 'relations' => iterator_to_array((function () {
+            yield 'relations' => iterator_to_array((function () use ($propertyPath) {
                 foreach ($this->getSingleRelationAccessors() as $propertyName => $accessor) {
                     yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($accessor) {
+                        function () use ($accessor, $propertyName) {
+                            if (!SerializationQueue::get()->shouldCurrentPropertyPathBeIncluded()) {
+                                return [
+                                    'meta' => null,
+                                ];
+                            }
                             $subject = $accessor($this->subject);
                             $identity = $this->getIdentityForSubjectOnStack($subject);
                             return [
+                                'meta' => null,
                                 'data' => $identity
                             ];
                         });
                 }
                 foreach ($this->getCollectionRelationAccessors() as $propertyName => $accessor) {
                     yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($accessor) {
+                        function () use ($accessor, $propertyName) {
+                            if (!SerializationQueue::get()->shouldCurrentPropertyPathBeIncluded()) {
+                                return [
+                                    'meta' => null,
+                                ];
+                            }
                             $subjects = $accessor($this->subject);
                             $identities = array_map((function ($subject) {
                                 return $this->getIdentityForSubjectOnStack($subject);
                             }), $subjects);
                             return [
+                                'meta' => null,
                                 'data' => $identities
                             ];
                         });
@@ -142,6 +154,7 @@ class Resource implements JsonSerializableTraversable
 
     protected function yieldTraversedPropertyPath(string $propertyName, callable $callable)
     {
-        yield $propertyName => SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
+        $value = SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
+        yield $propertyName => $value;
     }
 }

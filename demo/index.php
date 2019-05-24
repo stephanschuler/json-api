@@ -9,10 +9,12 @@ use StephanSchuler\JsonApi\Demo\Domain\Recipe;
 use StephanSchuler\JsonApi\Demo\Domain\Step\Step;
 use StephanSchuler\JsonApi\Demo\Service\ResourceIdentifier;
 use StephanSchuler\JsonApi\Demo\Service\ResourceSerializer;
+use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\Condition;
+use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\Whitelist;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Documents\SingleDocument;
-use StephanSchuler\JsonApi\Queue\SerializationQueue;
 
 $autoload = require __DIR__ . '/../vendor/autoload.php';
 assert($autoload instanceof ClassLoader);
@@ -42,12 +44,16 @@ $document = Document::createSingle(
 assert($document instanceof SingleDocument);
 $document = $document->withSubject($paella);
 
+header('Content-Type: application/json');
 
-echo '<pre>';
+$result = SerializationQueue::createFromDocument($document)
+    ->withIncludeRelationshipsArgument(
+        new Whitelist('ingredients.quantity', 'ingredients.ingredient')
+    );
 
 print_r(
     json_encode(
-        new SerializationQueue($document),
+        $result,
         JSON_PRETTY_PRINT
     )
 );

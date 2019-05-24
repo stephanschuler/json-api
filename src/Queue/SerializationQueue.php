@@ -4,6 +4,8 @@ namespace StephanSchuler\JsonApi\Queue;
 
 use JsonSerializable;
 use StephanSchuler\JsonApi\Json;
+use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\DropAll;
+use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\IncludeRelationships;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Identity;
 
@@ -17,9 +19,24 @@ final class SerializationQueue implements JsonSerializable
 
     private $document;
 
+    private $includeRelationships;
+
     public function __construct(Document $document)
     {
         $this->document = $document;
+        $this->includeRelationships = new DropAll();
+    }
+
+    public function createFromDocument(Document $document)
+    {
+        return new self($document);
+    }
+
+    public function withIncludeRelationshipsArgument(IncludeRelationships $includeRelationships): self
+    {
+        $clone = clone $this;
+        $clone->includeRelationships = $includeRelationships;
+        return $clone;
     }
 
     public static function get(): self
@@ -74,5 +91,10 @@ final class SerializationQueue implements JsonSerializable
     public function getPropertyPath(): string
     {
         return join('.', $this->propertyPath);
+    }
+
+    public function shouldCurrentPropertyPathBeIncluded(): bool
+    {
+        return $this->includeRelationships->shouldPropertyPathBeIncluded($this->getPropertyPath());
     }
 }
