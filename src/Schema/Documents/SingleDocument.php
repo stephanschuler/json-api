@@ -29,6 +29,9 @@ class SingleDocument extends Document implements JsonSerializableTraversable
         return true;
     }
 
+    /**
+     * @return Resource|null
+     */
     protected function getData()
     {
         if ($this->subject) {

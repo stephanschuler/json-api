@@ -4,6 +4,7 @@ namespace StephanSchuler\JsonApi\Schema\Documents;
 
 use StephanSchuler\JsonApi\JsonSerializableTraversable;
 use StephanSchuler\JsonApi\Schema\Document;
+use StephanSchuler\JsonApi\Schema\Resource;
 
 class CollectionDocument extends Document implements JsonSerializableTraversable
 {
@@ -21,13 +22,16 @@ class CollectionDocument extends Document implements JsonSerializableTraversable
         return true;
     }
 
+    /**
+     * @return Resource[]
+     */
     protected function getData()
     {
         if (!$this->subject) {
             return [];
         }
         return array_map(function ($subject) {
-            return Resource($subject);
+            return new Resource($subject);
         }, $this->subject);
     }
 
