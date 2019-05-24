@@ -23,7 +23,7 @@ class ResourceIdentifier implements Identifier
     {
         return new Identity(
             $this->getTypeNameForClassName(get_class($subject)),
-            crc32(serialize($subject))
+            crc32(spl_object_hash($subject))
         );
     }
 
