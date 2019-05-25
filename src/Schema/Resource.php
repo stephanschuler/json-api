@@ -43,13 +43,11 @@ class Resource implements JsonSerializableTraversable
 
         yield from $this->getIdentity();
         if ($this->hasAttributes()) {
-            yield 'attributes' => array_map(
-                function (callable $accessor) {
-                    return $accessor($this->subject);
-                },
-                iterator_to_array(
-                    $this->getAttributeAccessors()
-                ));
+            yield 'attributes' => IterationHelper::generateArray(function () use ($propertyPath) {
+                foreach ($this->getAttributeAccessors() as $propertyName => $accessor) {
+                    yield $propertyName => $accessor($this->subject);
+                }
+            });
         }
 
         if ($this->hasRelations()) {
