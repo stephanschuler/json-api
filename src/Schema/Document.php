@@ -2,12 +2,13 @@
 
 namespace StephanSchuler\JsonApi\Schema;
 
+use StephanSchuler\JsonApi\Helper\IterationHelper;
 use StephanSchuler\JsonApi\Json;
+use StephanSchuler\JsonApi\Queue\QueueItem;
+use StephanSchuler\JsonApi\Queue\SerializationQueue;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Schema\Documents\CollectionDocument;
 use StephanSchuler\JsonApi\Schema\Documents\SingleDocument;
-use StephanSchuler\JsonApi\Queue\SerializationQueue;
-use StephanSchuler\JsonApi\Queue\QueueItem;
 
 abstract class Document
 {
@@ -30,26 +31,24 @@ abstract class Document
 
     public function jsonSerialize()
     {
-        $result = Json::rewrapTraversable(
-            $this->getIterator()
-        );
+        return IterationHelper::generateArray(function () {
 
-        $included = [];
-        foreach (SerializationQueue::get()->getStack() as $item) {
-            assert($item instanceof QueueItem);
-            $included[] = SerializationQueue::get()->traversePropertyPath($item->getPropertyPath(),
-                function () use ($item) {
-                    return Json::rewrap(
-                        new Resource($item->getSubject(), $this->resolver)
-                    );
-                });
-        }
+            yield from Json::rewrapTraversable(
+                $this->getIterator()
+            );
 
-        if (!$included) {
-            return $result;
-        } else {
-            return array_merge($result, ['included' => $included]);
-        }
+            yield 'included' => IterationHelper::generateArray(function () {
+                foreach (SerializationQueue::get()->getStack() as $item) {
+                    assert($item instanceof QueueItem);
+                    yield SerializationQueue::get()->traversePropertyPath($item->getPropertyPath(),
+                        function () use ($item) {
+                            return Json::rewrap(
+                                new Resource($item->getSubject(), $this->resolver)
+                            );
+                        });
+                }
+            });
+        });
     }
 
     public function getIterator()
