@@ -26,7 +26,7 @@ class Properties implements IteratorAggregate, Countable
 
     public function getIterator()
     {
-        yield from $this->properties;
+        yield from array_values($this->properties);
     }
 
     public function count()

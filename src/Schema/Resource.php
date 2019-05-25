@@ -44,43 +44,46 @@ class Resource implements JsonSerializableTraversable
         yield from $this->getIdentity();
         if ($this->hasAttributes()) {
             yield 'attributes' => IterationHelper::generateArray(function () use ($queue, $propertyPath) {
-                foreach ($this->getAttributeAccessors() as $propertyName => $accessor) {
+                foreach ($this->getAttributeAccessors() as $property) {
+                    $propertyName = (string)$property;
                     if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
                         continue;
                     }
-                    yield $propertyName => $accessor($this->subject);
+                    yield (string)$property => $property($this->subject);
                 }
             });
         }
 
         if ($this->hasRelations()) {
             yield 'relationships' => IterationHelper::generateArray(function () use ($queue, $propertyPath) {
-                foreach ($this->getSingleRelationAccessors() as $propertyName => $accessor) {
+                foreach ($this->getSingleRelationAccessors() as $property) {
+                    $propertyName = (string)$property;
                     if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
                         continue;
                     }
-                    yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($queue, $accessor, $propertyName) {
-                            return IterationHelper::generateArray(function () use ($queue, $accessor) {
+                    yield (string)$property => $this->yieldTraversedPropertyPath($propertyName,
+                        function () use ($queue, $property, $propertyName) {
+                            return IterationHelper::generateArray(function () use ($queue, $property) {
                                 yield 'meta' => null;
                                 if ($queue->shouldCurrentPropertyPathBeIncluded()) {
-                                    $subject = $accessor($this->subject);
+                                    $subject = $property($this->subject);
                                     $identity = $this->getIdentityForSubjectOnStack($subject);
                                     yield 'data' => $identity;
                                 }
                             });
                         });
                 }
-                foreach ($this->getCollectionRelationAccessors() as $propertyName => $accessor) {
+                foreach ($this->getCollectionRelationAccessors() as $property) {
+                    $propertyName = (string)$property;
                     if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
                         continue;
                     }
-                    yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($queue, $accessor, $propertyName) {
-                            return IterationHelper::generateArray(function () use ($queue, $accessor) {
+                    yield (string)$property => $this->yieldTraversedPropertyPath($propertyName,
+                        function () use ($queue, $property, $propertyName) {
+                            return IterationHelper::generateArray(function () use ($queue, $property) {
                                 yield 'meta' => null;
                                 if ($queue->shouldCurrentPropertyPathBeIncluded()) {
-                                    $subjects = $accessor($this->subject);
+                                    $subjects = $property($this->subject);
                                     $identities = array_map((function ($subject) {
                                         return $this->getIdentityForSubjectOnStack($subject);
                                     }), $subjects);
@@ -158,7 +161,6 @@ class Resource implements JsonSerializableTraversable
 
     protected function yieldTraversedPropertyPath(string $propertyName, callable $callable)
     {
-        $value = SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
-        yield $propertyName => $value;
+        return SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
     }
 }
