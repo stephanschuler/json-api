@@ -40,7 +40,6 @@ class Resource implements JsonSerializableTraversable
     {
         $queue = SerializationQueue::get();
         $propertyPath = $queue->getPropertyPath();
-        yield 'propertyPath' => $propertyPath;
 
         yield from $this->getIdentity();
         if ($this->hasAttributes()) {
@@ -92,6 +91,8 @@ class Resource implements JsonSerializableTraversable
                 }
             });
         }
+
+        yield '@propertyPath' => '/' . str_replace('.', '/', $propertyPath);
     }
 
     protected function hasAttributes()
