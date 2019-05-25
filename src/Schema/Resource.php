@@ -38,26 +38,33 @@ class Resource implements JsonSerializableTraversable
 
     public function getIterator()
     {
-        $propertyPath = SerializationQueue::get()->getPropertyPath();
+        $queue = SerializationQueue::get();
+        $propertyPath = $queue->getPropertyPath();
         yield 'propertyPath' => $propertyPath;
 
         yield from $this->getIdentity();
         if ($this->hasAttributes()) {
-            yield 'attributes' => IterationHelper::generateArray(function () use ($propertyPath) {
+            yield 'attributes' => IterationHelper::generateArray(function () use ($queue, $propertyPath) {
                 foreach ($this->getAttributeAccessors() as $propertyName => $accessor) {
+                    if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
+                        continue;
+                    }
                     yield $propertyName => $accessor($this->subject);
                 }
             });
         }
 
         if ($this->hasRelations()) {
-            yield 'relationships' => IterationHelper::generateArray(function () use ($propertyPath) {
+            yield 'relationships' => IterationHelper::generateArray(function () use ($queue, $propertyPath) {
                 foreach ($this->getSingleRelationAccessors() as $propertyName => $accessor) {
+                    if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
+                        continue;
+                    }
                     yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($accessor, $propertyName) {
-                            return IterationHelper::generateArray(function () use ($accessor) {
+                        function () use ($queue, $accessor, $propertyName) {
+                            return IterationHelper::generateArray(function () use ($queue, $accessor) {
                                 yield 'meta' => null;
-                                if (SerializationQueue::get()->shouldCurrentPropertyPathBeIncluded()) {
+                                if ($queue->shouldCurrentPropertyPathBeIncluded()) {
                                     $subject = $accessor($this->subject);
                                     $identity = $this->getIdentityForSubjectOnStack($subject);
                                     yield 'data' => $identity;
@@ -66,11 +73,14 @@ class Resource implements JsonSerializableTraversable
                         });
                 }
                 foreach ($this->getCollectionRelationAccessors() as $propertyName => $accessor) {
+                    if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
+                        continue;
+                    }
                     yield from $this->yieldTraversedPropertyPath($propertyName,
-                        function () use ($accessor, $propertyName) {
-                            return IterationHelper::generateArray(function () use ($accessor) {
+                        function () use ($queue, $accessor, $propertyName) {
+                            return IterationHelper::generateArray(function () use ($queue, $accessor) {
                                 yield 'meta' => null;
-                                if (SerializationQueue::get()->shouldCurrentPropertyPathBeIncluded()) {
+                                if ($queue->shouldCurrentPropertyPathBeIncluded()) {
                                     $subjects = $accessor($this->subject);
                                     $identities = array_map((function ($subject) {
                                         return $this->getIdentityForSubjectOnStack($subject);

@@ -6,6 +6,8 @@ use JsonSerializable;
 use StephanSchuler\JsonApi\Json;
 use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\DropAll;
 use StephanSchuler\JsonApi\Queue\Arguments\IncludeRelationships\IncludeRelationships;
+use StephanSchuler\JsonApi\Queue\Arguments\SparseFieldsets\IncludeAll;
+use StephanSchuler\JsonApi\Queue\Arguments\SparseFieldsets\SparseFieldsets;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Identity;
 
@@ -21,10 +23,13 @@ final class SerializationQueue implements JsonSerializable
 
     private $includeRelationships;
 
+    private $sparseFieldsets;
+
     public function __construct(Document $document)
     {
         $this->document = $document;
         $this->includeRelationships = new DropAll();
+        $this->sparseFieldsets = new IncludeAll();
     }
 
     public function createFromDocument(Document $document)
@@ -38,6 +43,14 @@ final class SerializationQueue implements JsonSerializable
         $clone->includeRelationships = $includeRelationships;
         return $clone;
     }
+
+    public function withSparseFieldsetsArgument(SparseFieldsets $sparseFieldsets): self
+    {
+        $clone = clone $this;
+        $clone->sparseFieldsets = $sparseFieldsets;
+        return $clone;
+    }
+
 
     public static function get(): self
     {
@@ -96,5 +109,10 @@ final class SerializationQueue implements JsonSerializable
     public function shouldCurrentPropertyPathBeIncluded(): bool
     {
         return $this->includeRelationships->shouldPropertyPathBeIncluded($this->getPropertyPath());
+    }
+
+    public function shouldPropertyBeIncluded(string $typeName, string $propertyName): bool
+    {
+        return $this->sparseFieldsets->shouldPropertyBeIncluded($typeName, $propertyName);
     }
 }
