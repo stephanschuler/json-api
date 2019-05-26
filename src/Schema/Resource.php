@@ -61,7 +61,7 @@ class Resource implements JsonSerializableTraversable
                     if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
                         continue;
                     }
-                    yield (string)$property => $this->yieldTraversedPropertyPath($propertyName,
+                    yield (string)$property => $queue->traversePropertyPath($propertyName,
                         function () use ($queue, $property, $propertyName) {
                             return IterationHelper::generateArray(function () use ($queue, $property) {
                                 yield 'meta' => null;
@@ -78,7 +78,7 @@ class Resource implements JsonSerializableTraversable
                     if (!$queue->shouldPropertyBeIncluded($this->getTypeName(), $propertyName)) {
                         continue;
                     }
-                    yield (string)$property => $this->yieldTraversedPropertyPath($propertyName,
+                    yield (string)$property => $queue->traversePropertyPath($propertyName,
                         function () use ($queue, $property, $propertyName) {
                             return IterationHelper::generateArray(function () use ($queue, $property) {
                                 yield 'meta' => null;
@@ -157,10 +157,5 @@ class Resource implements JsonSerializableTraversable
     {
         $identity = $this->resolver->getIdentifierForSubject($subject)->identify($subject);
         return SerializationQueue::get()->includeInStack($identity, $subject);
-    }
-
-    protected function yieldTraversedPropertyPath(string $propertyName, callable $callable)
-    {
-        return SerializationQueue::get()->traversePropertyPath($propertyName, $callable);
     }
 }
