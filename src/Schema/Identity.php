@@ -2,10 +2,10 @@
 
 namespace StephanSchuler\JsonApi\Schema;
 
+use JsonSerializable;
 use StephanSchuler\JsonApi\Json;
-use StephanSchuler\JsonApi\JsonSerializableTraversable;
 
-class Identity implements JsonSerializableTraversable
+class Identity implements JsonSerializable
 {
     private $id;
 
@@ -40,11 +40,11 @@ class Identity implements JsonSerializableTraversable
     public function jsonSerialize()
     {
         return Json::rewrapTraversable(
-            $this->getIterator()
+            $this->getIteratorForJsonSerialize()
         );
     }
 
-    public function getIterator()
+    protected function getIteratorForJsonSerialize()
     {
         yield 'type' => $this->getTypeName();
         if ($this->hasId()) {

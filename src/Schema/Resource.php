@@ -2,14 +2,15 @@
 
 namespace StephanSchuler\JsonApi\Schema;
 
+use JsonSerializable;
 use StephanSchuler\JsonApi\Helper\IterationHelper;
 use StephanSchuler\JsonApi\Json;
-use StephanSchuler\JsonApi\JsonSerializableTraversable;
+use StephanSchuler\JsonApi\PropertyAccess\Properties;
 use StephanSchuler\JsonApi\Queue\SerializationQueue;
 use StephanSchuler\JsonApi\Resolver;
 use StephanSchuler\JsonApi\Resource\Serializer;
 
-class Resource implements JsonSerializableTraversable
+class Resource implements JsonSerializable
 {
     private $subject;
 
@@ -32,16 +33,16 @@ class Resource implements JsonSerializableTraversable
     public function jsonSerialize()
     {
         return Json::rewrapTraversable(
-            $this->getIterator()
+            $this->getIteratorForJsonSerialize()
         );
     }
 
-    public function getIterator()
+    protected function getIteratorForJsonSerialize()
     {
         $queue = SerializationQueue::get();
         $propertyPath = $queue->getPropertyPath();
 
-        yield from $this->getIdentity();
+        yield from Json::rewrap($this->getIdentity());
         if ($this->hasAttributes()) {
             yield 'attributes' => IterationHelper::generateArray(function () use ($queue, $propertyPath) {
                 foreach ($this->getAttributeAccessors() as $property) {
@@ -107,7 +108,7 @@ class Resource implements JsonSerializableTraversable
             ->hasAttributes($typeName);
     }
 
-    protected function getAttributeAccessors()
+    protected function getAttributeAccessors(): Properties
     {
         $typeName = $this->getTypeName();
         return $this
@@ -124,7 +125,7 @@ class Resource implements JsonSerializableTraversable
             ->hasRelations($typeName);
     }
 
-    protected function getSingleRelationAccessors()
+    protected function getSingleRelationAccessors(): Properties
     {
         $typeName = $this->getTypeName();
         return $this
@@ -132,7 +133,7 @@ class Resource implements JsonSerializableTraversable
             ->getSingleRelationAccessors($typeName);
     }
 
-    protected function getCollectionRelationAccessors()
+    protected function getCollectionRelationAccessors(): Properties
     {
         $typeName = $this->getTypeName();
         return $this

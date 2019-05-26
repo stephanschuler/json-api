@@ -34,7 +34,7 @@ abstract class Document
         return IterationHelper::generateArray(function () {
 
             yield from Json::rewrapTraversable(
-                $this->getIterator()
+                $this->getIteratorForJsonSerialize()
             );
 
             yield 'included' => IterationHelper::generateArray(function () {
@@ -51,7 +51,7 @@ abstract class Document
         });
     }
 
-    public function getIterator()
+    protected function getIteratorForJsonSerialize()
     {
         if ($this->hasData()) {
             yield 'data' => $this->getData();

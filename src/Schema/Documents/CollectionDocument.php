@@ -2,11 +2,11 @@
 
 namespace StephanSchuler\JsonApi\Schema\Documents;
 
-use StephanSchuler\JsonApi\JsonSerializableTraversable;
+use JsonSerializable;
 use StephanSchuler\JsonApi\Schema\Document;
 use StephanSchuler\JsonApi\Schema\Resource;
 
-class CollectionDocument extends Document implements JsonSerializableTraversable
+class CollectionDocument extends Document implements JsonSerializable
 {
     private $subject;
 
